@@ -1,137 +1,127 @@
-const fs = require("fs-extra");
-const axios = require("axios");
-const path = require("path");
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
-const doNotDelete = "[ 𝐓𝐎𝐌 ]";
 
 module.exports = {
-  config: {
+  config: Object.freeze({
     name: "help",
-    version: "1.17",
-    author: "ArYan",
+    version: "1.20",
+    author: "BaYjid (Modified by tom)",
     countDown: 5,
     role: 0,
-    shortDescription: {
-      en: "View command usage and list all commands directly",
-    },
-    longDescription: {
-      en: "View command usage and list all commands directly",
-    },
-    category: "info",
-    guide: {
-      en: "{pn} / help cmdName ",
-    },
+    shortDescription: { en: "📖 View command usage" },
+    longDescription: { en: "📜 View command usage and list all commands directly" },
+    category: "ℹ️ Info",
+    guide: { en: "🔹 {pn} [page] | {pn} <command> | {pn} -a <author> | {pn} -c <category>" },
     priority: 1,
-  },
-
-  onStart: async function ({ message, args, event, threadsData, role }) {
+  }),
+  
+  onStart: async function ({ message, args, event, role }) {
     const { threadID } = event;
-    const threadData = await threadsData.get(threadID);
     const prefix = getPrefix(threadID);
-    if (args.length === 0) {
-      const categories = {};
-      let msg = "╭───────❁";
-      msg += `\n│𝐁𝐚𝐛𝐲 𝐇𝐞𝐥𝐩 𝐋𝐢𝐬𝐭 \n╰────────────❁`;
-      for (const [name, value] of commands) {
-        if (value.config.role > 1 && role < value.config.role) continue;
-        const category = value.config.category || "Uncategorized";
-        categories[category] = categories[category] || { commands: [] };
-        categories[category].commands.push(name);
-      }
-      Object.keys(categories).forEach((category) => {
-        if (category !== "info") {
-          msg += `\n╭─────✰『  ${category.toUpperCase()}  』`;
-          const names = categories[category].commands.sort();
-          for (let i = 0; i < names.length; i += 3) {
-            const cmds = names.slice(i, i + 2).map((item) => `⭔${item}`);
-            msg += `\n│${cmds.join(" ".repeat(Math.max(1, 5 - cmds.join("").length)))}`;
-          }
-          msg += `\n╰────────────✰`;
-        }
-      });
-      const totalCommands = commands.size;
-      msg += `\n\n╭─────✰[𝗕𝗔'𝗕𝗬 くめ]\n│>𝐓𝐨𝐭𝐚𝐥 𝐂𝐦𝐝𝐬: [${totalCommands}].\n╰────────────✰`;
-      msg += ``;
-      msg += `\n╭─────✰\n│ ╣[卡姆鲁尔]╠\n╰────────────✰`;
-      const helpListImages = [
-        "https://files.catbox.moe/4ox6ty.gif",
-      ];
-      const helpListImage =
-        helpListImages[Math.floor(Math.random() * helpListImages.length)];
-      await message.reply({
-        body: msg,
-        attachment: await global.utils.getStreamFromURL(helpListImage),
-      });
-    } else {
+    
+    // Handle single command help
+    if (args.length > 0 && !args[0].startsWith("-") && !/^\d+$/.test(args[0])) {
       const commandName = args[0].toLowerCase();
-      const command =
-        commands.get(commandName) || commands.get(aliases.get(commandName));
-      if (!command) {
-        await message.reply(`Command "${commandName}" not found.`);
-      } else {
-        const configCommand = command.config;
-        const roleText = roleTextToString(configCommand.role);
-        const author = configCommand.author || "Unknown";
-        const longDescription = configCommand.longDescription
-          ? configCommand.longDescription.en || "No description"
-          : "No description";
-        const guideBody = configCommand.guide?.en || "No guide available.";
-        const usage = guideBody
-          .replace(/{p}/g, prefix)
-          .replace(/{n}/g, configCommand.name);
-        const response = `
-  ╭───⊙
-  │ 🔶 ${configCommand.name}
-  ├── INFO
-  │ 📝 𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻: ${longDescription}
-  │ 👑 𝗔𝘂𝘁𝗵𝗼𝗿: ${author}
-  │ ⚙ 𝗚𝘂𝗶𝗱𝗲: ${usage}
-  ├── USAGE
-  │ 🔯 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${configCommand.version || "1.0"}
-  │ ♻𝗥𝗼𝗹𝗲: ${roleText}
-  ╰────────────⊙`;
-        await message.reply(response);
-      }
+      const command = commands.get(commandName) || commands.get(aliases.get(commandName));
+      if (!command) return message.reply(`❌ Command "${commandName}" not found.`);
+      
+      const configCommand = command.config;
+      const roleText = roleTextToString(configCommand.role);
+      const usage = (configCommand.guide?.en || "No guide available.")
+        .replace(/{pn}/g, prefix)
+        .replace(/{n}/g, configCommand.name);
+      
+      return message.reply(
+`┏━━━━━━━━━┓
+┃𝐂𝐎𝐌𝐌𝐀𝐍𝐃 🦈 𝐈𝐍𝐅𝐎
+┣━━━━━━━━━┫
+┃ 🔹 𝐍𝐚𝐦𝐞: ${configCommand.name}
+┃ 📄 𝐃𝐞𝐬𝐜: ${configCommand.longDescription?.en || "No description"}
+┃ 🆔 𝐀𝐥𝐢𝐚𝐬𝐞𝐬: ${configCommand.aliases?.join(", ") || "None"}
+┃ 📦 𝐕𝐞𝐫𝐬𝐢𝐨𝐧: ${configCommand.version || "1.0"}
+┃ 🛡️ 𝐑𝐨𝐥𝐞: ${roleText}
+┃ ⏱️ 𝐂𝐨𝐨𝐥𝐝𝐨𝐰𝐧: ${configCommand.countDown || 1}s
+┃ 🧠 𝐀𝐮𝐭𝐡𝐨𝐫: ${configCommand.author || "Unknown"}
+┃ 💠 𝐔𝐬𝐚𝐠𝐞: ${usage}
+┗━━━━━━━━━┛`
+      );
     }
-  },
-
-  onChat: async function ({ message, event, threadsData, usersData }) {
-    const body = (event.body || "").toLowerCase().trim();
-    const prefix = global.GoatBot.config.prefix;
-
-    // Triggers that support prefix and no prefix
-    const triggers = ["help", `${prefix}help`];
-
-    if (!triggers.some((cmd) => body.startsWith(cmd))) return;
-
-    // Remove the command word ("help" or "!help") and split the rest as args
-    let args = body.split(/\s+/);
-    if (args[0].startsWith(prefix)) {
-      args[0] = args[0].slice(prefix.length);
+    
+    // Handle filters (-a author or -c category)
+    let filterAuthor = null;
+    let filterCategory = null;
+    if (args[0] === "-a" && args[1]) {
+      filterAuthor = args.slice(1).join(" ").toLowerCase();
+    } else if (args[0] === "-c" && args[1]) {
+      filterCategory = args.slice(1).join(" ").toLowerCase();
     }
-    args = args.slice(1);
-
-    await module.exports.onStart({
-      message,
-      event,
-      args,
-      threadsData,
-      usersData,
-      role: 0, // default role, change if you want
+    
+    // Get all commands based on filters
+    const allCommands = [];
+    for (const [name, value] of commands) {
+      const config = value.config;
+      if (config.role > 1 && role < config.role) continue;
+      if (filterAuthor && (config.author?.toLowerCase() !== filterAuthor)) continue;
+      if (filterCategory && (config.category?.toLowerCase() !== filterCategory)) continue;
+      allCommands.push({ name, category: config.category || "Uncategorized" });
+    }
+    
+    if (allCommands.length === 0) {
+      const filterMsg = filterAuthor ? `author "${filterAuthor}"` : `category "${filterCategory}"`;
+      return message.reply(`❌ No commands found for ${filterMsg}.`);
+    }
+    
+    // Sort commands by category then by name
+    allCommands.sort((a, b) => {
+      if (a.category < b.category) return -1;
+      if (a.category > b.category) return 1;
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
     });
+    
+    // Split into pages (8 pages total)
+    const commandsPerPage = Math.ceil(allCommands.length / 8);
+    const totalPages = 8;
+    let currentPage = parseInt(args[0]) || 1;
+    
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    
+    const startIdx = (currentPage - 1) * commandsPerPage;
+    const endIdx = Math.min(startIdx + commandsPerPage, allCommands.length);
+    const pageCommands = allCommands.slice(startIdx, endIdx);
+    
+    // Group commands by category for display
+    const categories = {};
+    pageCommands.forEach(cmd => {
+      if (!categories[cmd.category]) categories[cmd.category] = [];
+      categories[cmd.category].push(cmd.name);
+    });
+    
+    // Build the help message
+    let msg = `┏━━[ 𝐁𝐎𝐓 𝐌𝐄𝐍𝐔 - 𝐏𝐚𝐠𝐞 ${currentPage}/${totalPages} ]━━┓\n`;
+    
+    Object.keys(categories).sort().forEach(category => {
+      msg += `┃\n┃ ✦ 𝐂𝐚𝐭𝐞𝐠𝐨𝐫𝐲: ${category.toUpperCase()}\n`;
+      categories[category].sort().forEach(cmd => msg += `┃    ⤷ ${cmd}\n`);
+    });
+    
+    msg += `┃\n┣━━━━━━━━━━━━┫\n`;
+    msg += `┃ 🦈 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬: ${allCommands.length}\n`;
+    msg += `┃ 📘 𝐔𝐬𝐚𝐠𝐞: "${prefix}help <command>"\n`;
+    msg += `┃ 📄 𝐔𝐬𝐚𝐠𝐞: "${prefix}help <page>"\n`;
+    msg += `┗━━━━━━━━━━━━━┛`;
+    
+    await message.reply(msg);
   },
 };
 
-function roleTextToString(roleText) {
-  switch (roleText) {
-    case 0:
-      return "0 (All users)";
-    case 1:
-      return "1 (Group administrators)";
-    case 2:
-      return "2 (Admin bot)";
-    default:
-      return "Unknown role";
+function roleTextToString(role) {
+  switch (role) {
+    case 0: return "🌎 All Users";
+    case 1: return "👑 Group Admins";
+    case 2: return "🤖 Bot Admins";
+    default: return "❓ Unknown Role";
   }
 }
