@@ -1,77 +1,95 @@
-const moment = require('moment-timezone');
-const axios = require('axios');
+const fs = require("fs-extra");
+const request = require("request");
+const os = require("os");
 
 module.exports = {
-  config: {
-    name: "info",
-    aliases: ["inf", "in4"],
-    version: "2.0",
-    author: "Anthony | Edition by Xos Eren",
-    countDown: 5,
-    role: 0,
-    shortDescription: {
-      en: "Sends information about the bot and admin along with a video."
-    },
-    longDescription: {
-      en: "Sends information about the bot and admin along with a video."
-    },
-    category: "Information",
-    guide: {
-      en: "{pn}"
-    }
-  },
+  config: {
+    name: "info",
+    aliases: ["info"],
+    version: "1.4",
+    author: "Tom 🦆💨",
+    shortDescription: "Display bot and user information",
+    longDescription: "Shows user info, bot details, uptime, and video clips",
+    category: "INFO",
+    guide: { en: "Type 'info' or use prefix + info" },
+    usePrefix: false // to enable no-prefix
+  },
 
-  onStart: async function ({ message }) {
-    this.sendInfo(message);
-  },
+  onStart: async function (context) {
+    await module.exports.sendInfo(context); // works with prefix
+  },
 
-  onChat: async function ({ event, message }) {
-    if (event.body && event.body.toLowerCase() === "info") {
-      this.sendInfo(message);
-    }
-  },
+  onChat: async function ({ api, event }) {
+    const body = (event.body || "").toLowerCase().trim();
+    const prefix = global.GoatBot.config.prefix;
+    const triggers = ["info", "cmdname", `${prefix}info`, `${prefix}cmdname`];
+    if (triggers.includes(body)) {
+      await module.exports.sendInfo({ api, event });
+    }
+  },
 
-  sendInfo: async function (message) {
-    const botName = "🕸️ 𝐒𝐩𝐢𝐝𝐞𝐘🕷️";
-    const authorName = "Ma-Hi";
-    const authorFB = "fb.com/mahi68x";
-    const authorInsta = "raadx102";
-    const status = "𝗦𝗶𝗻𝗴𝗹𝗲";
+  sendInfo: async function ({ api, event }) {
+    const userInfo = {
+      name: "卡姆鲁尔",
+      age: "17+",
+      location: "𝗥𝗮𝗻𝗴𝗽𝘂𝗿",
+      bio: "JavaScript Lover | Forever Curious",
+      botName: "『 𝗕𝗔'𝗕𝗬 くめ 』",
+      botVersion: "1.0"
+    };
 
-    const now = moment().tz('Asia/Dhaka');
-    const time = now.format('h:mm:ss A');
+    const formatTime = seconds => {
+      const d = Math.floor(seconds / (3600 * 24));
+      const h = Math.floor((seconds % (3600 * 24)) / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      return `${d}d ${h}h ${m}m ${s}s`;
+    };
 
-    const uptime = process.uptime();
-    const seconds = Math.floor(uptime % 60);
-    const minutes = Math.floor((uptime / 60) % 60);
-    const hours = Math.floor((uptime / (60 * 60)) % 24);
-    const uptimeString = `${hours}h ${minutes}m ${seconds}s`;
+    const msg = `
+╭━━〔 𝐀𝐝𝐦𝐢𝐧 𝐈𝐧𝐟𝐨 〕━━╮
+┣ ⏤👤 𝗡𝗮𝗺𝗲: ${userInfo.name}
+┣ ⏤🎂 𝗔𝗴𝗲: ${userInfo.age}
+┣ ⏤📍 𝗟𝗼𝗰𝗮𝘁𝗶𝗼𝗻: ${userInfo.location}
+┣ ⏤📝 𝗕𝗶𝗼: ${userInfo.bio}
+╰━━━━━━━━━━━━━━╯
 
-    const videoUrl = "https://files.catbox.moe/t73j7v.mp4";
+╭━━〔 𝗕𝗼𝘁 𝗜𝗻𝗳𝗼 〕━━╮
+┣ ⏤🤖 𝗡𝗮𝗺𝗲: ${userInfo.botName}
+┣ ⏤🛠 𝗩𝗲𝗿𝘀𝗶𝗼𝗻: ${userInfo.botVersion}
+┣ ⏤⏱ 𝗕𝗼𝘁 𝗨𝗽𝘁𝗶𝗺𝗲: ${formatTime(process.uptime())}
+┣ ⏤🖥 𝗦𝘆𝘀 𝗨𝗽𝘁𝗶𝗺𝗲: ${formatTime(os.uptime())}
+╰━━━━━━━━━━━━━━╯`.trim();
 
-    const body = `
+    const videoLinks = [
+      "https://i.imgur.com/lzLYl1w.mp4",
+      "https://i.imgur.com/lzLYl1w.mp4"
+    ];
 
-┏━━━━━━━━━━━━━━━━┓
-┃ 🧑 Admin Info
-┃ ╰➤ Name: ${authorName}
-┃ ╰➤ Facebook: ${authorFB}
-┃ ╰➤ Instagram: ${authorInsta}
-┃ ╰➤ Status: ${status}
-┃
-┃ 🤖 Bot Details
-┃ ╰➤ Name: ${botName}
-┃ ╰➤ Time: ${time}
-┃ ╰➤ Uptime: ${uptimeString}
-┗━━━━━━━━━━━━━━━━┛
+    try {
+      const attachments = await Promise.all(videoLinks.map(async (url, i) => {
+        const path = `${__dirname}/cache/info_video_${i}.mp4`;
+        await new Promise((resolve, reject) =>
+          request(url)
+            .pipe(fs.createWriteStream(path))
+            .on("finish", resolve)
+            .on("error", reject)
+        );
+        return fs.createReadStream(path);
+      }));
 
-I may not be perfect,
-   but I’ll always reply to you.`;
-
-    const response = await axios.get(videoUrl, { responseType: 'stream' });
-
-    message.reply({
-      body,
-      attachment: response.data
-    });
-  }
+      await api.sendMessage(
+        { body: msg, attachment: attachments },
+        event.threadID,
+        () => {
+          // Clean up cache files
+          attachments.forEach(a => a.path && fs.unlink(a.path, () => {}));
+        },
+        event.messageID
+      );
+    } catch (err) {
+      console.error("❌ Error loading video:", err);
+      api.sendMessage("⚠️ Failed to fetch info. Please try again later.", event.threadID);
+    }
+  }
 };
