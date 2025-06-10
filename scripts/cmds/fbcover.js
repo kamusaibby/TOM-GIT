@@ -1,5 +1,6 @@
 const axios = require("axios");
 
+
 const baseApiUrl = async () => {
   const base = await axios.get(
     "https://raw.githubusercontent.com/Mostakim0978/D1PT0/refs/heads/main/baseApiUrl.json",
@@ -7,18 +8,20 @@ const baseApiUrl = async () => {
   return base.data.api;
 };
 
+
 module.exports.config = {
   name: "fbcover",
   version: "6.9",
-  role: 2,
+  role: 0,
   author: "Dipto",
   description: "Facebook cover",
   category: "Cover",
   guide: {
     en: "name - title - address - email - phone - color (default = white)",
   },
-  coolDowns: 5,
+  coolDowns: 8,
 };
+
 
 module.exports.onStart = async function ({ api, event, args, usersData }) {
   const dipto = args.join(" ");
@@ -29,7 +32,9 @@ module.exports.onStart = async function ({ api, event, args, usersData }) {
     id = Object.keys(event.mentions)[0] || event.senderID;
   }
 
+
   const nam = await usersData.get(id);
+
 
   if (!dipto) {
     return api.sendMessage(
@@ -47,8 +52,9 @@ module.exports.onStart = async function ({ api, event, args, usersData }) {
     const phone = msg[5]?.trim() || " ";
     const color = msg[6]?.trim() || "white";
 
+
     api.sendMessage(
-      `Processing your cover, Wait koro baby < 😘`,
+      `𝐏𝐫𝐨𝐜𝐞𝐬𝐬𝐢𝐧𝐠 𝐲𝐨𝐮𝐫 𝐜𝐨𝐯𝐞𝐫 𝐰𝐚𝐢𝐭 𝐤𝐨𝐫𝐨 𝐛𝐚𝐛𝐲 !!`,
       event.threadID,
       (err, info) =>
         setTimeout(() => {
@@ -56,7 +62,9 @@ module.exports.onStart = async function ({ api, event, args, usersData }) {
         }, 4000),
     );
 
+
     const img = `${await baseApiUrl()}/cover/${v}?name=${encodeURIComponent(name)}&subname=${encodeURIComponent(subname)}&number=${encodeURIComponent(phone)}&address=${encodeURIComponent(address)}&email=${encodeURIComponent(email)}&colour=${encodeURIComponent(color)}&uid=${id}`;
+
 
     try {
       const response = await axios.get(img, { responseType: "stream" });
