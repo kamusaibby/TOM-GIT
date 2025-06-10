@@ -30,7 +30,7 @@ module.exports = {
   onStart: async function ({ api, event, args, message }) {
     try {
       if (event.senderID !== ALLOWED_UID) {
-        return message.reply("𝐒𝐫𝐲 𝐬𝐢𝐫 𝐚𝐩𝐧𝐚𝐫 𝐩𝐞𝐫𝐦𝐢𝐬𝐬𝐢𝐨𝐧 𝐧𝐞𝐢 !!");
+        return message.reply("𝐏𝐞𝐫𝐦𝐢𝐬𝐬𝐢𝐨𝐧 𝐧𝐞 𝐚𝐠𝐞 𝐛𝐨𝐥𝐨𝐝 😆");
       }
 
       const baseApiUrl = await getApiBinUrl();
@@ -44,7 +44,7 @@ module.exports = {
 
       const fileName = args[0];
       if (!fileName) {
-        return message.reply("📝 Please provide a filename or reply to a file !! ");
+        return message.reply("📝 𝐏𝐥𝐞𝐚𝐬𝐞 𝐩𝐫𝐨𝐯𝐢𝐝𝐞 𝐚 𝐟𝐢𝐥𝐞𝐧𝐚𝐦𝐞 𝐨𝐫 𝐫𝐞𝐩𝐥𝐲 𝐭𝐨 𝐚 𝐟𝐢𝐥𝐞 !! ");
       }
 
       await this.uploadFile(api, event, fileName, baseApiUrl);
@@ -73,7 +73,7 @@ module.exports = {
   uploadFile: async function (api, event, fileName, baseApiUrl) {
     const filePath = this.findFilePath(fileName);
     if (!filePath.exists) {
-      return api.sendMessage(`🔍 File "${fileName}" not found!`, event.threadID, event.messageID);
+      return api.sendMessage(`🔍 𝐅𝐢𝐥𝐞 "${fileName}" 𝐍𝐨𝐭 𝐟𝐨𝐮𝐧𝐝`, event.threadID, event.messageID);
     }
 
     const form = new FormData();
@@ -84,7 +84,7 @@ module.exports = {
     });
 
     api.sendMessage({
-      body: `✅ File uploaded!\n📝 Raw: ${data.raw}`,
+      body: `✅ 𝐅𝐢𝐥𝐞 𝐮𝐩𝐥𝐨𝐚𝐝𝐞𝐝!\n📝 𝐑𝐚𝐰: ${data.raw}`,
       attachment: null
     }, event.threadID, event.messageID);
   },
