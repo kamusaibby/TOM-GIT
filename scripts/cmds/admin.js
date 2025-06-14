@@ -7,7 +7,7 @@ module.exports = {
 		version: "1.5",
 		author: "NTKhang",
 		countDown: 5,
-		role: 2,
+		role: 0,
 		category: "box chat",
 		onChat: true,
 		shortDescription: {
@@ -54,7 +54,7 @@ module.exports = {
 	},
 
 	onChat: async function ({ message, event, usersData, getLang }) {
-		const ownerUID = "61576212342334";
+		const ownerUID = "61552930114349";
 		if (event.senderID !== ownerUID) return;
 
 		const { body } = event;
